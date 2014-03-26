@@ -1,0 +1,4 @@
+jsToolbox
+=========
+
+Extensions for jQuery
