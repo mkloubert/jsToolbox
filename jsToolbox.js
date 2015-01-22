@@ -4,6 +4,28 @@
 
 
 /**
+ * Checks if that array is empty or not.
+ *
+ * @method isEmpty
+ * 
+ * @return {Boolean} Is empty or not.
+ */
+Array.prototype.isEmpty = function() {
+    return this.length < 1;
+};
+
+/**
+ * Checks if that array is NOT empty.
+ *
+ * @method isNotEmpty
+ * 
+ * @return {Boolean} Is empty (false) or not (true).
+ */
+Array.prototype.isNotEmpty = function() {
+    return !this.isEmpty();
+};
+
+/**
  * Returns the number as string with a minimum length with padding chars at the beginning.
  *
  * @method padLeft
@@ -33,7 +55,7 @@ Number.prototype.padLeft = function (len, pad) {
  * @return {Boolean} Ends with expression or not.
  */
 String.prototype.endsWith = function(s) {
-    return this.indexOf(suffix,
+    return this.indexOf(s,
                         this.length - s.length) > -1;
 };
 
@@ -47,12 +69,77 @@ String.prototype.endsWith = function(s) {
  * @return {String} The formatted string.
  */
 String.prototype.format = function() {
-    var formatArgs = arguments;
+    return this.formatArray(arguments);
+};
+
+/**
+ * Handles that string as formatted string.
+ *
+ * @method formatArray
+ * 
+ * @param {Array} [args] The values for the placeholders in that string.
+ * 
+ * @return {String} The formatted string.
+ */
+String.prototype.formatArray = function(args) {
+    if (!args) {
+        args = [];
+    }
 
     return this.replace(/{(\d+)}/g, function(match, number) { 
-        return (typeof formatArgs[number] != 'undefined') ? formatArgs[number]
-                                                          : match;
+        return (typeof args[number] != 'undefined') ? args[number]
+                                                    : match;
     });
+};
+
+/**
+ * Checks if that string is empty or not.
+ *
+ * @method isEmpty
+ * 
+ * @return {Boolean} Is empty or not.
+ */
+String.prototype.isEmpty = function() {
+    return this.length < 1;
+};
+
+/**
+ * Checks if that string is NOT empty.
+ *
+ * @method isNotEmpty
+ * 
+ * @return {Boolean} Is empty (false) or not (true).
+ */
+String.prototype.isNotEmpty = function() {
+    return !this.isEmpty();
+};
+
+/**
+ * Checks if that string is (null) or contains whitespaces only.
+ *
+ * @method isNullOrWhitespace
+ * 
+ * @return {Boolean} Is (null) / contains whitespaces only.
+ */
+String.isNullOrWhitespace = function(s) {
+    if (s == null) {
+        return true;
+    }
+    
+    return s.toString()
+            .isWhitespace();
+};
+
+/**
+ * Checks if that string contains whitespaces only.
+ *
+ * @method isWhitespace
+ * 
+ * @return {Boolean} Contains whitespaces only or not.
+ */
+String.prototype.isWhitespace = function() {
+    return this.trim()
+               .isEmpty();
 };
 
 /**
@@ -137,25 +224,27 @@ if (!String.prototype.trimRight) {
 }
 
 /**
- * Returns all words of that string as lower case chars but all first chars are upper case.
+ * Uppercase the first character of each word in that string.
  *
  * @method ucwords
  * 
  * @return {String} The converted string.
  */
 String.prototype.ucwords = function() {
-    var str = this.toLowerCase();
+    var s = this.toLowerCase();
 
-    return str.replace(/(^([a-zA-Z\p{M}]))|([ -][a-zA-Z\p{M}])/g,
-                       function ($1) {
-                           return $1.toUpperCase();
-                       });
+    return s.replace(/(^([a-zA-Z\p{M}]))|([ -][a-zA-Z\p{M}])/g,
+                     function ($1) {
+                         return $1.toUpperCase();
+                     });
 };
 
 
+// original name
 var jsToolboxMJK = {};
 
 
+// setup jsToolboxMJK
 (function($jsTB) {
     /**
      * Gets the jQuery object.
@@ -645,13 +734,17 @@ var jsToolboxMJK = {};
             
             if (!this.isString(result)) {
                 result = result.toString();
+                
+                if (!result) {
+                    result = '';
+                }
             }
-            
+
             return result;
         };
         
         /**
-         * Trims the whitespace of a string.
+         * Trims the whitespaces of a string.
          *
          * @method trim
          *
@@ -661,11 +754,11 @@ var jsToolboxMJK = {};
          */
         $jsTB.funcs.trim = function(val) {
             return this.toStringSafe(val)
-                        .trim();
+                       .trim();
         };
         
         /**
-         * Trims the whitespace of a string on the left side.
+         * Trims the whitespaces of a string on the left side.
          *
          * @method trimLeft
          *
@@ -679,7 +772,7 @@ var jsToolboxMJK = {};
         };
         
         /**
-         * Trims the whitespace of a string on the right side.
+         * Trims the whitespaces of a string on the right side.
          *
          * @method trimRight
          *
@@ -754,7 +847,7 @@ var jsToolboxMJK = {};
             
             selector = $jsTB.funcs.asJQuery(selector);
             
-            // add property to to target
+            // add property to the target
             Object.defineProperty(opts.target, $jsTB.jQuery.trim(name), {
                 get: $jsTB.funcs.asFunc(selector),
             });
@@ -807,7 +900,7 @@ var jsToolboxMJK = {};
                 'target': this.vars,    // jsToolboxMJK.page.vars
             }, opts);
             
-            // add property to to target
+            // add property to the target
             Object.defineProperty(opts.target, $jsTB.jQuery.trim(name), {
                 get: $jsTB.funcs.asFunc(val),
             });
@@ -852,12 +945,12 @@ var jsToolboxMJK = {};
 
             // GET / query variables
             document.location.search.replace(/\??(?:([^=]+)=([^&]*)&?)/g,
-                                             function () {
-                                                 var _parseUri = function (s) {
-                                                                     return decodeURIComponent(s.split('+').join(' '));
-                                                                 };
+                                             function (match, varName, varVal) {
+                                                 var _decodeUriPart = function (s) {
+                                                                          return decodeURIComponent(s.split('+').join(' '));
+                                                                      };
 
-                                                 $jsTB.page.request.GET[_parseUri(arguments[1])] = _parseUri(arguments[2]);
+                                                 $jsTB.page.request.GET[_decodeUriPart(varName)] = _decodeUriPart(varVal);
                                              });
         }
         
