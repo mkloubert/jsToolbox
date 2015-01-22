@@ -1,3 +1,7 @@
+// LICENSE: GPL 3 - https://www.gnu.org/licenses/gpl-3.0.txt
+
+// s. https://github.com/mkloubert/jsToolbox
+
 
 $jsTB.page.addVar('a1', 5979);
 $jsTB.page.addVar('a2', function() {

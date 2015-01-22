@@ -1,6 +1,6 @@
 // LICENSE: LGPL 3 - https://www.gnu.org/licenses/lgpl-3.0.txt
 
-// s. https://github.com/mkloubert/CLRToolboxReloaded
+// s. https://github.com/mkloubert/jsToolbox
 
 
 /**
@@ -404,6 +404,75 @@ var jsToolboxMJK = {};
         $jsTB.funcs.eval = function(code) {
             return $jsTB.jQuery
                         .globalEval(code);
+        };
+        
+        /**
+         * Invokes a function inside a try-catch block and returns the result as object.
+         *
+         * @method invoke
+         *
+         * @param {function} fn The function to invoke.
+         * @param {mixed} [...args] The arguments for the function.
+         *
+         * @return {Object} The result object of the invokation.
+         */
+        $jsTB.funcs.invoke = function(fn) {
+            var result = {
+                'args': [],
+                'hasBeenInvoked': false,
+            };
+            
+            // copy "real" function arguments
+            for (var i = 1; i < arguments.length; i++) {
+                result.args.push(arguments[i]);
+            }
+            
+            // result.duration
+            Object.defineProperty(result, 'duration', {
+                get: function() {
+                    if (!this.startTime || !this.endTime) {
+                        return;
+                    }
+                    
+                    return this.endTime - this.startTime;
+                },
+            });
+            
+            // result.hasFailed
+            Object.defineProperty(result, 'hasFailed', {
+                get: function() {
+                    return this.error ? true : false;
+                },
+            });
+            
+            try {
+                if (fn) {
+                    result.hasBeenInvoked = true;
+
+                    // define the code to invoke
+                    var code = 'fn(';
+                    for (var i = 0; i < result.args.length; i++) {
+                        if (i > 0) {
+                            code += ',';
+                        }
+                        
+                        code += 'result.args[{0}]'.format(i);
+                    }
+                    code += ');';
+                    
+                    // invoke the code
+                    result.startTime = $jsTB.now;
+                    result.result = eval(code);
+                    result.endTime = $jsTB.now;
+                }
+            }
+            catch (e) {
+                result.endTime = $jsTB.now;
+            
+                result.error = e;
+            }
+            
+            return result;
         };
         
         /**

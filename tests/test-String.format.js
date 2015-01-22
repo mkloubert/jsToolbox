@@ -1,3 +1,7 @@
+// LICENSE: GPL 3 - https://www.gnu.org/licenses/gpl-3.0.txt
+
+// s. https://github.com/mkloubert/jsToolbox
+
 
 QUnit.test('String.format', function( assert ) {
     var a1 = '{0} + {3} = {1} + {2}'.format('MK', 23979,
