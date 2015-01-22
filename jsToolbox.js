@@ -393,6 +393,83 @@ var jsToolboxMJK = {};
         };
         
         /**
+         * Creates an object that builds and handles a batch invokation.
+         *
+         * @method buildBatch
+         *
+         * @param {Object} [opts] Additional options.
+         * 
+         * @return {Object} The object that builds and handles a batch invokation.
+         */
+        $jsTB.funcs.buildBatch = function(opts) {
+            opts = $jsTB.jQuery.extend({
+                'stopOnFirstError': true,
+            }, opts);
+        
+            var _items = [];
+        
+            var result = {};
+            
+            // result.add()
+            result.add = function(fn) {
+                var newItem = {
+                    'args': [],
+                    'function': fn,
+                };
+                
+                for (var i = 1; i < arguments.length; i++) {
+                    newItem.args.push(arguments[i]);
+                }
+            
+                return this;
+            };
+            
+            // result.clear()
+            result.clear = function() {
+                _items = [];
+            
+                return this;
+            };
+            
+            result.__getItem = function(index) {
+                return _items[index];
+            };
+            
+            // result.invoke()
+            result.invoke = function(opts2) {
+                opts2 = $jsTB.jQuery.extend({
+                    'stopOnFirstError': opts.stopOnFirstError ? true : false,
+                }, opts2);
+                
+                var results = [];
+                
+                for (var i = 0; i < this.length; i++) {
+                    var item = this.__getItem(i);
+                
+                    var r = $jsTB.funcs.invokeArray(item.function, item.args);
+                    results.push(r);
+                    
+                    if (r.hasFailed) {
+                        if (opts2.stopOnFirstError) {
+                            break;
+                        }
+                    }
+                }
+                
+                return results;
+            };
+            
+            // result.length
+            Object.defineProperty(result, 'length', {
+                get: function () {
+                    return _items.length;
+                },
+            });
+            
+            return result;
+        };
+        
+        /**
          * Executes JavaScript code globally.
          *
          * @method eval
@@ -417,15 +494,35 @@ var jsToolboxMJK = {};
          * @return {Object} The result object of the invokation.
          */
         $jsTB.funcs.invoke = function(fn) {
+            // copy "real" function arguments
+            var args = [];
+            for (var i = 1; i < arguments.length; i++) {
+                args.push(arguments[i]);
+            }
+            
+            return this.invokeArray(fn, args);
+        };
+        
+        /**
+         * Invokes a function inside a try-catch block and returns the result as object.
+         * The arguments for the function are submitted as array.
+         *
+         * @method invokeArray
+         *
+         * @param {function} fn The function to invoke.
+         * @param {Array} [args] The arguments for the function.
+         *
+         * @return {Object} The result object of the invokation.
+         */
+        $jsTB.funcs.invokeArray = function(fn, args) {
+            if (!args) {
+                args = [];
+            }
+        
             var result = {
-                'args': [],
+                'args': args,
                 'hasBeenInvoked': false,
             };
-            
-            // copy "real" function arguments
-            for (var i = 1; i < arguments.length; i++) {
-                result.args.push(arguments[i]);
-            }
             
             // result.duration
             Object.defineProperty(result, 'duration', {
@@ -648,7 +745,7 @@ var jsToolboxMJK = {};
          * @param {mixed} selector The selector to use.
          * @param {Object} [opts] Additional options.
          * 
-         * @return {function} The function that provides the jQuery selector.
+         * @chainable
          */
         $jsTB.page.addElement = function(name, selector, opts) {
             opts = $jsTB.jQuery.extend({
@@ -656,14 +753,13 @@ var jsToolboxMJK = {};
             }, opts);
             
             selector = $jsTB.funcs.asJQuery(selector);
-            var valProvider = $jsTB.funcs.asFunc(selector);
             
             // add property to to target
             Object.defineProperty(opts.target, $jsTB.jQuery.trim(name), {
-                get: valProvider,
+                get: $jsTB.funcs.asFunc(selector),
             });
             
-            return valProvider;
+            return this;
         };
         
         /**
@@ -674,6 +770,8 @@ var jsToolboxMJK = {};
          * @param {function} action The action to invoke.
          * @param {mixed} [actionState] The optional state object for the action.
          * @param {Object} [opts] Additional options.
+         * 
+         * @chainable
          */
         $jsTB.page.addOnLoaded = function(action, actionState, opts) {
             opts = $jsTB.jQuery.extend({
@@ -689,6 +787,8 @@ var jsToolboxMJK = {};
                 'options': opts,
                 'state': actionState,
             });
+            
+            return this;
         };
     
         /**
@@ -700,21 +800,19 @@ var jsToolboxMJK = {};
          * @param {mixed} val The value of the variable / the value provider function.
          * @param {Object} [opts] Additional options.
          * 
-         * @return {function} The added value provider.
+         * @chainable
          */
         $jsTB.page.addVar = function(name, val, opts) {
             opts = $jsTB.jQuery.extend({
                 'target': this.vars,    // jsToolboxMJK.page.vars
             }, opts);
             
-            var valProvider = $jsTB.funcs.asFunc(val);
-            
             // add property to to target
             Object.defineProperty(opts.target, $jsTB.jQuery.trim(name), {
-                get: valProvider,
+                get: $jsTB.funcs.asFunc(val),
             });
             
-            return valProvider;
+            return this;
         };
     
         /**
