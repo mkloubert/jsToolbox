@@ -501,7 +501,7 @@ var jsToolboxMJK = {};
             result.add = function(fn) {
                 var newItem = {
                     'args': [],
-                    'function': fn,
+                    'func': fn,
                 };
                 
                 for (var i = 1; i < arguments.length; i++) {
@@ -533,7 +533,7 @@ var jsToolboxMJK = {};
                 for (var i = 0; i < this.length; i++) {
                     var item = this.__getItem(i);
                 
-                    var r = $jsTB.funcs.invokeArray(item.function, item.args);
+                    var r = $jsTB.funcs.invokeArray(item.func, item.args);
                     results.push(r);
                     
                     if (r.hasFailed) {
