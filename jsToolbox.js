@@ -798,6 +798,7 @@ var jsToolboxMJK = {};
                 var bsCtx = {
                     'cancel': false,
                     'data': frmData,
+                    'form': frm,
                     'options': opts,
                 };
                 if (opts.beforeSubmit) {
@@ -834,6 +835,7 @@ var jsToolboxMJK = {};
                         }
                         
                         bsCtx.options.complete({
+                            'form': frm,
                             'status': textStatus,
                             'xhr': jqXHR,
                         });
@@ -846,6 +848,7 @@ var jsToolboxMJK = {};
                         
                         bsCtx.options.error({
                             'error': errorThrown,
+                            'form': frm,
                             'status': textStatus,
                             'xhr': jqXHR,
                         });
@@ -858,6 +861,7 @@ var jsToolboxMJK = {};
                         
                         bsCtx.options.success({
                             'data': data,
+                            'form': frm,
                             'status': textStatus,
                             'xhr': jqXHR,
                         });
@@ -872,8 +876,10 @@ var jsToolboxMJK = {};
                             }
                             
                             var prCtx = {
+                                'form': frm,
                                 'total': event2.total,
                                 'uploaded': event2.loaded,
+                                'xhr': myXHR,
                             };
                             
                             // percentage
