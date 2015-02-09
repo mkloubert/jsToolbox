@@ -23,15 +23,7 @@ else {
     <script src="jsToolbox.js"></script>
   </head>
 
-  <body> 
-<?php
-
-
-
-
-
-?> 
-  
+  <body>
     <form id="uploadTestForm" action="<?php echo TM_SELF; ?>" method="POST">
         <input name="fileToUpload" type="file" size="50" maxlength="<?php echo ini_get('upload_max_filesize'); ?>" /><br />
         <input name="aHiddenField" type="hidden" value="TM+MK" />
