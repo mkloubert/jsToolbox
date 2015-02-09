@@ -115,19 +115,17 @@ String.prototype.isNotEmpty = function() {
 };
 
 /**
- * Checks if that string is (null) or contains whitespaces only.
+ * Checks if a string is (null) or contains whitespaces only.
  *
  * @method isNullOrWhitespace
+ * 
+ * @param {String} s The string to check.
  * 
  * @return {Boolean} Is (null) / contains whitespaces only.
  */
 String.isNullOrWhitespace = function(s) {
-    if (s == null) {
-        return true;
-    }
-    
-    return s.toString()
-            .isWhitespace();
+    return (s == null) ||
+           s.isWhitespace();
 };
 
 /**
@@ -714,6 +712,191 @@ var jsToolboxMJK = {};
         $jsTB.funcs.isString = function(obj) {
             return (typeof obj == 'string') ||
                    (obj instanceof String);
+        };
+        
+        /**
+         * Registers a HTML form for custom file upload handling.
+         *
+         * @method registerForFileUpload
+         *
+         * @param {Object} frm The selector that selects the form(s).
+         * @param {String} files The selector inside the form(s) that selects the files.
+         * @param {Object} [opts] Additional options.
+         *
+         * @return {Object} The form(s) selector.
+         */
+        $jsTB.funcs.registerForFileUpload = function(frm, opts) {
+            opts = $jsTB.jQuery.extend({
+            }, opts);
+            
+            frm = this.asJQuery(frm);
+
+            // register event for collecting file objects
+            var filesToUpload;
+            frm.find('input[type=file]')
+               .on('change', function(event) {
+                                 var ie = $jsTB.jQuery(this);
+                                 
+                                 filesToUpload = [];
+                                 $jsTB.jQuery.each(event.target.files, function(key, value) {
+                                     var newEntry = {
+                                         'file': value,
+                                         'name': ie.attr('name'),
+                                     };
+                                     
+                                     if (typeof newEntry.name === "undefined") {
+                                         newEntry.name = key;
+                                     }
+                                     
+                                     filesToUpload.push(newEntry);
+                                 });
+                             })
+               .trigger('change');
+
+            // submit event
+            frm.on('submit', function(event) {
+                event.stopPropagation();
+                event.preventDefault();
+
+                var frmData = new FormData();
+                
+                // add files
+                $jsTB.jQuery.each(filesToUpload, function(key, value) {
+                    frmData.append(value.name,
+                                   value.file);
+                });
+                
+                // add other fields
+                frm.find('input')
+                   .not('input[type=file]')
+                   .not('input[type=submit]')
+                   .not('input[type=button]')
+                   .not('input[type=image]')
+                   .each(function(key, value) {
+                             var ie = $jsTB.jQuery(value);
+                             
+                             var ieName = ie.attr('name');
+                             if (typeof ieName === "undefined") {
+                                 ieName = key;
+                             }
+                             
+                             frmData.append(ieName, ie.val());
+                         });
+                
+                var bsCtx = {
+                    'cancel': false,
+                    'data': frmData,
+                    'options': opts,
+                };
+                if (opts.beforeSubmit) {
+                    opts.beforeSubmit(bsCtx);
+                }
+                
+                if (bsCtx.cancel) {
+                    return;
+                }
+                
+                if (typeof bsCtx.options.action === "undefined") {
+                    bsCtx.options.action = frm.attr('action');
+                }
+
+                if (typeof bsCtx.options.method === "undefined") {
+                    bsCtx.options.method = frm.attr('method');
+                }
+                
+                if (!bsCtx.options.method) {
+                    bsCtx.options.method = 'POST';
+                }
+                
+                $jsTB.jQuery.ajax({
+                    'cache': false,
+                    'contentType': false,
+                    'data': frmData,
+                    'processData': false,
+                    'type': bsCtx.options.method,
+                    'url': bsCtx.options.action,
+                    
+                    'complete': function(jqXHR, textStatus) {
+                        if (!bsCtx.options.complete) {
+                            return;
+                        }
+                        
+                        bsCtx.options.complete({
+                            'status': textStatus,
+                            'xhr': jqXHR,
+                        });
+                    },
+                    
+                    'error': function(jqXHR, textStatus, errorThrown) {
+                        if (!bsCtx.options.error) {
+                            return;
+                        }
+                        
+                        bsCtx.options.error({
+                            'error': errorThrown,
+                            'status': textStatus,
+                            'xhr': jqXHR,
+                        });
+                    },
+                    
+                    'success': function(data, textStatus, jqXHR) {
+                        if (!bsCtx.options.success) {
+                            return;
+                        }
+                        
+                        bsCtx.options.success({
+                            'data': data,
+                            'status': textStatus,
+                            'xhr': jqXHR,
+                        });
+                    },
+                    
+                    'xhr': function() {
+                        var myXHR = $jsTB.jQuery.ajaxSettings.xhr();
+                        
+                        myXHR.upload.onprogress = function(event2) {
+                            if (!bsCtx.options.progress) {
+                                return;
+                            }
+                            
+                            var prCtx      = {};
+                            prCtx.total    = event2.total;
+                            prCtx.uploaded = event2.loaded;
+                            
+                            // percentage
+                            Object.defineProperty(prCtx, 'percentage', {
+                                get: function () {
+                                    return this.progress * 100.0;
+                                },
+                            });
+                            
+                            // progress
+                            Object.defineProperty(prCtx, 'progress', {
+                                get: function () {
+                                    if (0 != this.total) {
+                                        return this.uploaded / this.total;
+                                    }
+                                
+                                    return 0;
+                                },
+                            });
+                            
+                            // remaining
+                            Object.defineProperty(prCtx, 'remaining', {
+                                get: function () {
+                                    return this.total - this.uploaded;
+                                },
+                            });
+                            
+                            bsCtx.options.progress(prCtx);
+                        };
+                        
+                        return myXHR;
+                    },
+                });
+            });
+            
+            return frm;
         };
         
         /**
