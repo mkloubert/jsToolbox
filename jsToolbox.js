@@ -750,8 +750,20 @@ var jsToolboxMJK = {};
                                      
                                      filesToUpload.push(newEntry);
                                  });
+                                 
+                                 if (opts.change) {
+                                     var cCtx = {
+                                         'files': filesToUpload,
+                                         'options': opts,
+                                         'submit': function() {
+                                             frm.submit();
+                                         },
+                                     };
+                                     
+                                     opts.change(cCtx);
+                                 }
                              })
-               .trigger('change');
+               .trigger('change');  // initial call
 
             // submit event
             frm.on('submit', function(event) {
@@ -859,9 +871,10 @@ var jsToolboxMJK = {};
                                 return;
                             }
                             
-                            var prCtx      = {};
-                            prCtx.total    = event2.total;
-                            prCtx.uploaded = event2.loaded;
+                            var prCtx = {
+                                'total': event2.total,
+                                'uploaded': event2.loaded,
+                            };
                             
                             // percentage
                             Object.defineProperty(prCtx, 'percentage', {
