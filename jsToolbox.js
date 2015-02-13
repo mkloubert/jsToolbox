@@ -345,15 +345,9 @@ var jsToolboxMJK = {};
      */
     $jsTB.events = {};
     {
-        /**
-         * Is fired when page was completely loaded.
-         *
-         * @event pageLoaded
-         * 
-         * @param {Object} sender The sending object
-         * @param {Object} e Event arguments
-         */
-        $jsTB.events.pageLoaded = function(sender, e) {
+        // default pageLoaded event action
+        // THIS IS FOR INTERNAL USE!
+        $jsTB.events.__defaultPageLoadedAction = function(sender, e) {
             var actionVars = {};    // global vars between onLoaded actions
         
             // handle onLoaded list of 'jsToolboxMJK.page.addOnLoaded'
@@ -368,13 +362,30 @@ var jsToolboxMJK = {};
                 var opts = item.options;
                 
                 var ctx = {
+                    'addVar': function(name, val, opts2) {
+                        opts2 = $jsTB.jQuery.extend({
+                        }, opts2);
+                        
+                        // add property to the target
+                        Object.defineProperty(this.vars, $jsTB.jQuery.trim(name), {
+                            get: $jsTB.funcs.asFunc(val),
+                        });
+                        
+                        return this;
+                    },
+                    'clearVars': function(opts2) {
+                        opts2 = $jsTB.jQuery.extend({
+                        }, opts2);
+                        
+                        this.vars = {};
+                        return this;
+                    },
                     'continueOnError': opts.continueOnError,
                     'index': i,
                     'lastErr': lastError,
                     'prevState': prevState,
                     'nextState': null,
                     'state': actionState,
-                    'vars': actionVars,
                 };
                 
                 // ctx.isFirst
@@ -395,6 +406,19 @@ var jsToolboxMJK = {};
                     },
                 });
 
+                // ctx.vars
+                // 
+                // global context variables
+                Object.defineProperty(ctx, 'vars', {
+                    get: function () {
+                        return actionVars;
+                    },
+                    
+                    set: function (v) {
+                        actionVars = v;
+                    },
+                });
+                
                 lastError = null;
                 
                 try {
@@ -433,6 +457,16 @@ var jsToolboxMJK = {};
                 prevState = ctx.nextState;
             }
         };
+        
+        /**
+         * Is fired when page was completely loaded.
+         *
+         * @event pageLoaded
+         * 
+         * @param {Object} sender The sending object
+         * @param {Object} e Event arguments
+         */
+        $jsTB.events.pageLoaded = $jsTB.events.__defaultPageLoadedAction;
     }
     
     /**
@@ -712,6 +746,41 @@ var jsToolboxMJK = {};
         $jsTB.funcs.isString = function(obj) {
             return (typeof obj == 'string') ||
                    (obj instanceof String);
+        };
+        
+        /**
+         * Opens a new popup window.
+         *
+         * @method openPopup
+         *
+         * @param {String} url The URL to open.
+         * @param {mixed} [nameOrOpts] The name of the new window or additional options.
+         *
+         * @return {Object} The jQuery object that represents the new window.
+         */
+        $jsTB.funcs.openPopup = function(url, nameOrOpts) {
+            if (!nameOrOpts) {
+                nameOrOpts = 'jsTBPopup';
+            }
+        
+            if (this.isString(nameOrOpts)) {
+                nameOrOpts = {
+                    'name': nameOrOpts,
+                };
+            }
+        
+            nameOrOpts = $jsTB.jQuery.extend({
+                'canResize' : true,
+                'height': 400,
+                'width': 640,
+            }, nameOrOpts);
+            
+            var newWin = window.open(url,
+                                     nameOrOpts.name,
+                                     'width={0},height={1},resizable={2}'.format(nameOrOpts.width, nameOrOpts.height,
+                                                                                 nameOrOpts.canResize ? 'yes' : 'no'));
+            
+            return $jsTB.jQuery(newWin);
         };
         
         /**
@@ -1173,7 +1242,9 @@ var jsToolboxMJK = {};
         // last but not least:
         // the 'pageLoaded' event
         if ($jsTB.events.pageLoaded) {
-            var e = {
+            var e = {};
+            e.invokeDefault = function() {
+                $jsTB.events.__defaultPageLoadedAction($jsTB, e);
             };
         
             $jsTB.events.pageLoaded($jsTB, e);
