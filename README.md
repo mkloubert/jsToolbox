@@ -29,16 +29,25 @@ Have a look at the [wiki](https://github.com/mkloubert/jsToolbox/wiki) for detai
   
     <script type="text/javascript">
         
+        // invoke if page has completely loaded
         $jsTB.page.addOnLoaded(function() {
             $jsTB.page.addVar('myVar1', 'TM')
                       .addVar('myVar2', function() {
                                             return 'Current time: {0}'.format(new Date());
                                         });
-                                        
+              
+            // create selectors
+            // 
+            //   - placeFor_myVar1
+            //   - placeFor_myVar2
+            // 
+            // in $jsTB.page.elements namespace
             $jsTB.page.addElement('placeFor_myVar1', '#myVars .myVar1Value')
                       .addElement('placeFor_myVar2', '#myVars .myVar2Value');
         });
         
+        // page function 'myButtonAction'
+        // that provides the action for the button
         $jsTB.page.funcs.myButtonAction = function() {
             $jsTB.page.elements.placeFor_myVar1
                                .text($jsTB.page.vars.myVar1);
@@ -54,4 +63,17 @@ Have a look at the [wiki](https://github.com/mkloubert/jsToolbox/wiki) for detai
 
 ## Getting started
 
-First include [jQuery](http://jquery.com/) before including `jsToolbox.js` or `jsToolbox.min.js` file.
+```html
+<html>
+  <head>
+    <script type="text/javascript" src="https://code.jquery.com/jquery-1.11.2.min.js"></script>
+    <script type="text/javascript" src="jsToolbox.min.js"></script>
+  </head>
+
+  <body>
+    <script type="text/javascript">
+        //TODO
+    </script>
+  </body>
+</html>
+```
