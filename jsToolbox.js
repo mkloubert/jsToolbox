@@ -1221,7 +1221,7 @@ var jsToolboxMJK = {};
                                                                           return decodeURIComponent(s.split('+').join(' '));
                                                                       };
 
-                                                 $jsTB.page.request.GET[_decodeUriPart(varName)] = _decodeUriPart(varVal);
+                                                 $jsTB.page.request.GET[_decodeUriPart(varName).toLowerCase()] = _decodeUriPart(varVal);
                                              });
         }
         
