@@ -15,8 +15,8 @@ Have a look at the [wiki](https://github.com/mkloubert/jsToolbox/wiki) for detai
 ```html
 <html>
   <head>
-    <script type="text/javascript" src="https://code.jquery.com/jquery-1.11.2.min.js"></script>
-    <script type="text/javascript" src="jsToolbox.min.js"></script>
+    <script type="text/javascript" src="js/jquery.min.js"></script>
+    <script type="text/javascript" src="js/jsToolbox.min.js"></script>
   </head>
 
   <body>
@@ -66,8 +66,8 @@ Have a look at the [wiki](https://github.com/mkloubert/jsToolbox/wiki) for detai
 ```html
 <html>
   <head>
-    <script type="text/javascript" src="https://code.jquery.com/jquery-1.11.2.min.js"></script>
-    <script type="text/javascript" src="jsToolbox.min.js"></script>
+    <script type="text/javascript" src="js/jquery.min.js"></script>
+    <script type="text/javascript" src="js/jsToolbox.min.js"></script>
   </head>
 
   <body>
